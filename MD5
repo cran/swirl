@@ -1,5 +1,5 @@
-b7ea68e5eca262952d84a34a2c1bf4cd *DESCRIPTION
-e1ad900caa4db5e8f542bfb49a30ae72 *NAMESPACE
+d7696bf180ee12d68c5ef10a4d35915b *DESCRIPTION
+83543b6990be41c709aea52e735db2e8 *NAMESPACE
 0e1d639abecf3fb1edf98dd7d7b2898b *R/answerTests.R
 bb2c73f893ddc9f066105994526ff651 *R/instructionSet.R
 3a9edc4faeaa31439147366bee85377b *R/menu.R
@@ -7,7 +7,7 @@ edf728fde1ad2f062c8126160d3b70ce *R/modConstructor.R
 796b6d800402b8185053eff7b869e4c6 *R/phrases.R
 c84a7d6f475c72b370680239839fd313 *R/progress.R
 bf13f2da70fefac9867ab9044fa5ec2b *R/rmd2csv.R
-d8d5a41af6356e15e9a0be1d7ee7b331 *R/swirl.R
+726f7eb336797915756b40a23ebc9e8c *R/swirl.R
 082d2a1f82d87b4044285c97e3510feb *R/utilities.R
 60404bd9883a57da45405c4dd383de42 *README.md
 a57319a3c72f42025590cf2d7f4805ac *inst/Courses/Data_Analysis/module1/initModule.R
