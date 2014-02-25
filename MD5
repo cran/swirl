@@ -1,4 +1,4 @@
-70ece30390f2f69dab354cb64f74974d *DESCRIPTION
+5a97b9dc1439c121903c5cc34941a72c *DESCRIPTION
 82a040fc4046c86f65bd78e7aef6c90a *NAMESPACE
 875a16a20c5e1e35709cc8743d9a4707 *R/answerTests.R
 3e3b09afe8cd37f9395ffe07d3d36261 *R/answerTests2.R
@@ -35,7 +35,7 @@ e8ecdafd14700bbef0eb5d9f8f914413 *inst/Courses/Data_Analysis/MANIFEST
 53e14bd81103b2dacac9360cc586dfee *inst/Courses/Intro_to_R/Basic_Building_Blocks/lesson.Rmd
 5220ab4824c05b7593ef2852a864e123 *inst/Courses/Intro_to_R/MANIFEST
 f691c89c5cc63ec98470a9cc9422ff02 *inst/Courses/Intro_to_R/Sequences_of_Numbers/lesson.Rmd
-55be06928d08ad29ec9659da818fdc45 *inst/Courses/Intro_to_R/Vectors/lesson.Rmd
+e818ae59095134887f0a0923b11fd788 *inst/Courses/Intro_to_R/Vectors/lesson.Rmd
 23fee72de88b2dc714fa2003a46c655e *inst/Courses/Mathematical_Biostatistics_Boot_Camp/Errors_Power_and_Sample_Size/lesson.csv
 9aadc294290d7e02f2821f96625a7f36 *inst/Courses/Mathematical_Biostatistics_Boot_Camp/MANIFEST
 6b48fcb012f38ea22ad9423ee8ff822e *inst/Courses/Mathematical_Biostatistics_Boot_Camp/One_Sample_t-test/lesson.csv
