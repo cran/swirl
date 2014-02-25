@@ -1,6 +1,6 @@
 #' An interactive learning environment for R and statistics.
 #' 
-#' This function presents a choice of course modules and interactively
+#' This function presents a choice of course lessons and interactively
 #' tutors a user through them. A user may be asked to watch a video, to
 #' answer a multiple-choice or fill-in-the-blanks question, or to
 #' enter a command in the R console precisely as if he or she were 
@@ -145,7 +145,7 @@ skip <- function(){invisible()}
 
 #' Tell swirl to ignore console input for a while.
 #' 
-#' It is somethimes useful to play around in the R console out of
+#' It is sometimes useful to play around in the R console out of
 #' curiosity or to solidify a concept. This command will cause
 #' swirl to remain idle, allowing the user to experiment at will,
 #' until the command \code{nxt()} is entered. 
@@ -219,7 +219,7 @@ resume <- function(...)UseMethod("resume")
 # It runs a fixed "program" consisting of three "instructions" which in 
 # turn present information, capture a user's response, and test and retry 
 # if necessary. The three instructions are themselves S3 methods which 
-# depend on the class of the active row of the course module. The 
+# depend on the class of the active row of the course lesson. The 
 # instruction set is thus extensible. It can be found in R/instructionSet.R. 
 # 
 resume.default <- function(e){
@@ -230,7 +230,12 @@ resume.default <- function(e){
     esc_flag <- FALSE
     return(TRUE)
   }
-  if(uses_func("nxt")(e$expr)[[1]]){
+  if(uses_func("nxt")(e$expr)[[1]]){    
+    ## Using the stored list of "official" swirl variables and values,
+    #  assign variables of the same names in the global environment
+    #  their "official" values, in case the user has changed them
+    #  while playing.
+    xfer(as.environment(e$official), globalenv())
     swirl_out("Resuming lesson...")
     e$playing <- FALSE
     e$iptr <- 1
@@ -250,23 +255,26 @@ resume.default <- function(e){
     # Increment a skip count kept in e.
     if(!exists("skips", e))e$skips <- 0
     e$skips <- 1 + e$skips
-    # Enter the correct answer for the user.
+    # Enter the correct answer for the user
+    # by simulating what the user should have done
+    #
     correctAns <- e$current.row[,"CorrectAnswer"]
-    e$expr <- parse(text=correctAns)[[1]]
-    e$val <- eval(e$expr)
-    # Evaluate it in the global environment
-    eval(e$expr, globalenv())
-    # Inform the user, but don't expose the actual answer.
-    
-    swirl_out("I've entered the correct answer for you.")
-    temp <- new.env()
-    eval(e$expr, temp)
-    temp <- ls(temp)
-    if(length(temp) > 0){
-      swirl_out(paste0("In doing so, I've created the variable(s) ", 
-                       temp, ", which you may need later."))
+    # In case correctAns refers to newVar, add it
+    # to the snapshot AND the global environment
+    if(exists("newVarName",e)){
+      correctAns <- gsub("newVar", e$newVarName, correctAns)
     }
-    
+    e$expr <- parse(text=correctAns)[[1]]
+    ce <- cleanEnv(e$snapshot)
+    e$val <- eval(e$expr, ce)
+    xfer(ce, globalenv())
+    ce <- as.list(ce)
+    # Inform the user, but don't expose the actual answer.    
+    swirl_out("I've entered the correct answer for you.")
+    if(length(names(ce)) > 0){
+      swirl_out(paste0("In doing so, I've created the variable(s) ", 
+                       names(ce), ", which you may need later."))
+    }  
   }
   # Method menu initializes or reinitializes e if necessary.
   temp <- mainMenu(e)
@@ -276,11 +284,24 @@ resume.default <- function(e){
     esc_flag <- FALSE # To supress double notification
     return(FALSE)
   }
+  
+  # if e$expr is NOT swirl() or nxt(), the user has just responded to
+  # a question at the command line. Simulate evaluation of the
+  # user's expression and save any variables changed or created
+  # in e$delta. 
+  # TODO: Eventually make auto-detection of new variables an option.
+  # AUTO_DETECT_NEWVAR is currently hardcoded TRUE. (See utilities.R.)
+  if(!uses_func("swirl")(e$expr)[[1]] && 
+       !uses_func("nxt")(e$expr)[[1]] &&
+       AUTO_DETECT_NEWVAR){
+    e$delta <- safeEval(e$expr, e)
+  }
+  
   # Execute instructions until a return to the prompt is necessary
   while(!e$prompt){
-    # If the module is complete, save progress, remove the current
-    # module from e, and invoke the top level menu method.
-    if(e$row > nrow(e$mod)){
+    # If the lesson is complete, save progress, remove the current
+    # lesson from e, and invoke the top level menu method.
+    if(e$row > nrow(e$les)){
       saveProgress(e)
       # form a new path for the progress file
       # which indicates completion and doesn't
@@ -291,8 +312,12 @@ resume.default <- function(e){
       # rename the progress file to indicate completion
       if(file.exists(new_path))file.remove(new_path)
       file.rename(e$progress, new_path)
-      rm("mod", envir=e)
-      # let the user select another course module
+      # remove the current lesson and any custom tests
+      rm("les", envir=e)
+      clearCustomTests()
+      # Let user know lesson is complete
+      swirl_out("You've reached the end of this lesson! Returning to the main menu...")
+      # let the user select another course lesson
       temp <- mainMenu(e)
       # if menu returns FALSE, user wants to quit.
       if(is.logical(temp) && !isTRUE(temp)){
@@ -303,15 +328,30 @@ resume.default <- function(e){
     }
     # If we are ready for a new row, prepare it
     if(e$iptr == 1){
+      
+      #  Any variables changed or created during the previous
+      #  question must have been correct or we would not be about
+      #  to advance to a new row. Incorporate these in the list
+      #  of swirl's "official" names and values.
+      #  It should be safe to remove the current snapshot here.
+      if (!is.null(e$delta)){
+        e$official <- mergeLists(e$delta,e$official)
+      }
+      e$delta <- list()
       saveProgress(e)
-      e$current.row <- e$mod[e$row,]
+      e$current.row <- e$les[e$row,]
       # Prepend the row's swirl class to its class attribute
-      attr(e$current.row,"class") <- c(e$current.row[,"Class"], 
-                                       attr(e$current.row,"class"))
+      class(e$current.row) <- c(e$current.row[,"Class"], 
+                                       class(e$current.row))
     }
     # Execute the current instruction
     e$instr[[e$iptr]](e$current.row, e)
   }
+  
+  # Take a snapshot of the global environment here for
+  #  comparison after the user has responded to a question at
+  #  the command line. Store it in e.
+  e$snapshot <- as.list(globalenv())
   e$prompt <- FALSE
   esc_flag <- FALSE
   return(TRUE)

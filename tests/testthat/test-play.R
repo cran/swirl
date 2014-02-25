@@ -1,12 +1,12 @@
-# Experimental tests for learning testthat
-
-# install.packages("testthat") # (if necessary)
-# install.packages("devtools") # (if necessary)
-# require(testthat)
-# require(devtools)
-# > load_all()
-# > test_dir("inst/tests/")
-
+# # Experimental tests for learning testthat
+# 
+# # install.packages("testthat") # (if necessary)
+# # install.packages("devtools") # (if necessary)
+# # require(testthat)
+# # require(devtools)
+# # > load_all()
+# # > test_dir("tests")
+# 
 context("Learning testthat")
 
 test_that("runTest.newVar and runTest.result can handle random vectors.", {
@@ -17,6 +17,10 @@ test_that("runTest.newVar and runTest.result can handle random vectors.", {
   x <- c(runif(5), rnorm(5))
   e$expr <- quote(x <- c(runif(5), rnorm(5)))
   e$val <- x
+  e$les <- "stub"
+  e$delta <- list(x=x)
+  attr(e$les, "course_name") <- "Data Analysis"
+  e$snapshot <- new.env()
   # runTest.newVar should return TRUE, indicating a new variable was
   # created. To do so, it evaluates e$expr internally and checks if
   # a new variable was created in its own runtime environment. Because
