@@ -21,6 +21,7 @@ loadInstructions <- function(e, ...)UseMethod("loadInstructions")
 # are provided.
 # 
 # @param e persistent environment accessible to the callback
+#'@importFrom yaml yaml.load_file
 mainMenu.default <- function(e){
   # Welcome the user if necessary and set up progress tracking
   if(!exists("usr",e,inherits = FALSE)){
@@ -54,16 +55,49 @@ mainMenu.default <- function(e){
       idx <- unlist(sapply(coursesU, 
                     function(x)length(dir(file.path(courseDir(e),x)))>0))
       coursesU <- coursesU[idx]
-      # If no courses are available, exit
+      
+      # If no courses are available, offer to install one
       if(length(coursesU)==0){
-        swirl_out("No courses are available. Try again using swirl() with no parameter.")
-        return(FALSE)
+        suggestions <- yaml.load_file(file.path(courseDir(e), "suggested_courses.yaml"))
+        choices <- sapply(suggestions, function(x)paste0(x$Course, ": ", x$Description))
+        swirl_out("To begin, you must install a course. I can install a",
+                  "course for you from the internet, or I can send you to a web page",
+                  "(https://github.com/swirldev/swirl_courses)",
+                  "which will provide course options and directions for", 
+                  "installing courses yourself.",
+                  "(If you are not connected to the internet, type 0 to exit.)")
+        choices <- c(choices, "Don't install anything for me. I'll do it myself.")
+        choice <- select.list(choices)
+        n <- which(choice == choices)
+        if(length(n) == 0)return(FALSE)
+        if(n < length(choices)){
+          temp <- try(eval(parse(text=suggestions[[n]]$Install)), silent=TRUE)
+          if(is(temp, "try-error")){
+            swirl_out(paste0("Sorry, but I'm unable to fetch ", choice, ". Perhaps
+                             your internet connection is down?"))
+            return(FALSE)
+          }
+          coursesU <- dir(courseDir(e))
+          # Eliminate empty directories
+          idx <- unlist(sapply(coursesU, 
+                               function(x)length(dir(file.path(courseDir(e),x)))>0))
+          coursesU <- coursesU[idx]
+        } else {
+          swirl_out("OK. I'm opening the swirl courses web page in your browser.")
+          browseURL("https://github.com/swirldev/swirl_courses#swirl-courses")
+          return(FALSE)
+        }
       }
       # path cosmetics
       coursesR <- gsub("_", " ", coursesU)
       lesson <- ""
       while(lesson == ""){
         course <- courseMenu(e, coursesR)
+        if(!is.null(names(course)) && names(course)=="repo") {
+          swirl_out("OK. I'm opening the swirl courses web page in your browser.")
+          browseURL("https://github.com/swirldev/swirl_courses#swirl-courses")
+          return(FALSE)
+        }
         if(course=="")return(FALSE)
         # Set temp course name since csv files don't carry attributes
         e$temp_course_name <- course
@@ -89,12 +123,23 @@ mainMenu.default <- function(e){
         # reverse path cosmetics
         lesson <- ifelse(lesson_choice=="", "",
                          lessons[lesson_choice == lessons_clean])
+        # Load the lesson and intialize everything
+        e$les <- loadLesson(e, courseU, lesson)
+        # Return to the course menu if the lesson failed to load
+        if(is.logical(e$les) && !isTRUE(e$les)){
+          rm("les", envir=e, inherits=FALSE)
+          lesson <- ""
+          next()
+        }
       }
-      # Load the lesson and intialize everything
-      e$les <- loadLesson(e, courseU, lesson)
-      # Remove temp lesson name and course name vars, which were surrogates
+   # Remove temp lesson name and course name vars, which were surrogates
       # for csv attributes -- they've been attached via lesson() by now
       rm("temp_lesson_name", "temp_course_name", envir=e, inherits=FALSE)
+      
+      # Initialize the progress bar
+      e$pbar <- txtProgressBar(style=3)
+      e$pbar_seq <- seq(0, 1, length=nrow(e$les))
+      
       # expr, val, ok, and vis should have been set by the callback.
       # The lesson's current row
       e$row <- 1
@@ -117,15 +162,14 @@ mainMenu.default <- function(e){
       # indicator that swirl is not reacting to console input
       e$playing <- FALSE
       # create the file
-      saveRDS(e, e$progress)
+      suppressMessages(suppressWarnings(saveRDS(e, e$progress)))
     }
   }
   return(TRUE)
 }
 
-# Development version.
-welcome.dev <- function(e, ...){
-  "swirladmin"
+welcome.test <- function(e, ...){
+  "author"
 }
 
 # Default version.
@@ -150,8 +194,7 @@ housekeeping.default <- function(e){
   readline("\n...")
 }
 
-# Development version; does nothing
-housekeeping.dev <- function(e){}
+housekeeping.test <- function(e){}
 
 # A stub. Eventually this should be a full menu
 inProgressMenu.default <- function(e, choices){
@@ -163,10 +206,20 @@ inProgressMenu.default <- function(e, choices){
   return(selection)
 }
 
+inProgressMenu.test <- function(e, choices) {
+  ""
+}
+
 # A stub. Eventually this should be a full menu
 courseMenu.default <- function(e, choices){
-  swirl_out("Please choose a course, or type 0 to exit swirl. We recommend Intro to R, which is the only course we are actively developing.")
+  repo_option <- "Take me to the swirl course repository!"
+  choices <- c(choices, repo = repo_option)
+  swirl_out("Please choose a course, or type 0 to exit swirl.")
   return(select.list(choices, graphics=FALSE))
+}
+
+courseMenu.test <- function(e, choices) {
+  e$test_course
 }
 
 # A stub. Eventually this should be a full menu
@@ -175,11 +228,17 @@ lessonMenu.default <- function(e, choices){
   return(select.list(choices, graphics=FALSE))
 }
 
+lessonMenu.test <- function(e, choices) {
+  e$test_lesson
+}
+
 loadLesson.default <- function(e, courseU, lesson){
   # Load the content file
   lesPath <- file.path(courseDir(e), courseU, lesson)
   shortname <- find_lesson(lesPath)
-  dataName <- file.path(lesPath,shortname)     
+  dataName <- file.path(lesPath,shortname)
+  # Handle dependencies
+  if(!loadDependencies(lesPath))return(FALSE)
   # Before initializing the module, take a snapshot of 
   #  the global environment.
   snapshot <- as.list(globalenv())
@@ -195,7 +254,7 @@ loadLesson.default <- function(e, courseU, lesson){
   e$snapshot <- as.list(globalenv())
   idx <- !(e$snapshot %in% snapshot)
   e$official <- e$snapshot[idx]
-  # load any custom tests
+  # load any custom tests, returning FALSE if they fail to load
   clearCustomTests()
   loadCustomTests(lesPath)
   
@@ -211,6 +270,9 @@ restoreUserProgress.default <- function(e, selection){
   temp <- readRDS(file.path(e$udat, selection))
   # transfer its contents to e
   xfer(temp, e)
+  # Since loadDepencies will have worked once, we don't
+  # check for failure here. Perhaps we should.
+  loadDependencies(e$path)
   # TODO: We probably shouldn't be doing this again.
   # source the initLesson.R file if it exists
   initf <- file.path(e$path, "initLesson.R")
@@ -283,11 +345,6 @@ order_lessons <- function(current_order, manifest_order) {
 courseDir.default <- function(e){
   # e's only role is to determine the method used
   file.path(find.package("swirl"), "Courses")
-}
-
-courseDir.dev <- function(e){
-  # e's only role is to determine the method used
-  file.path("inst", "Courses")
 }
 
 # Default for determining the user
