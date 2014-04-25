@@ -169,6 +169,22 @@ skip <- function(){invisible()}
 #' }
 play <- function(){invisible()}
 
+#' Return to swirl's main menu.
+#' 
+#' Return to swirl's main menu from a lesson in progress.
+#' @export
+#' @examples
+#' \dontrun{
+#' 
+#' | The simplest way to create a sequence of numbers in R is by using
+#' | the `:` operator. Type 1:20 to see how it works.
+#' 
+#' > main()
+#' 
+#' | Returning to the main menu...
+#' }
+main <- function(){invisible()}
+
 #' Display a list of special commands.
 #' 
 #' Display a list of the special commands, \code{bye()}, \code{play()}, 
@@ -203,7 +219,9 @@ info <- function(){
   
   swirl_out("-- Typing bye() causes swirl to exit. Your progress will be saved.", skip_before=FALSE)
   
-  swirl_out("-- Typing info() displays these options again.", skip_before=FALSE, skip_after=TRUE)  
+  swirl_out("-- Typing main() returns you to swirl's main menu.", skip_before=FALSE)
+  
+  swirl_out("-- Typing info() displays these options again.", skip_before=FALSE, skip_after=TRUE)
 
   
   invisible()
@@ -282,11 +300,17 @@ resume.default <- function(e, ...){
     xfer(ce, globalenv())
     ce <- as.list(ce)
     # Inform the user, but don't expose the actual answer.    
-    swirl_out("I've entered the correct answer for you.")
-    if(length(names(ce)) > 0){
-      swirl_out(paste0("In doing so, I've created the variable(s) ", 
-                       names(ce), ", which you may need later."))
-    }  
+    swirl_out("Entering the following correct answer for you...",
+              skip_after=TRUE)
+    message("> ", e$current.row[, "CorrectAnswer"])
+  }
+  # If the user want to return to the main menu, do the bookkeeping
+  if(uses_func("main")(e$expr)[[1]]){
+    swirl_out("Returning to the main menu...")
+    # Remove the current lesson. Progress has been saved already.
+    if(exists("les", e, inherits=FALSE)){
+      rm("les", envir=e, inherits=FALSE)
+    }
   }
   # Method menu initializes or reinitializes e if necessary.
   temp <- mainMenu(e)
@@ -336,6 +360,8 @@ resume.default <- function(e, ...){
       courseraCheck(e)
       # remove the current lesson and any custom tests
       rm("les", envir=e)
+      # Reset skip count if it exists
+      if(exists("skips", e)) e$skips <- 0
       clearCustomTests()
       # Let user know lesson is complete
       swirl_out("You've reached the end of this lesson! Returning to the main menu...")
