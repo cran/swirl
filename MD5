@@ -1,12 +1,12 @@
-da3e03f610b49c4abdb570e2c2b7b7cf *DESCRIPTION
+a8256b797fce321c3f575c564a107828 *DESCRIPTION
 68b5018e4d46f0b3f88b67e89242c7ac *NAMESPACE
 dba700a971129d72feaeadf5bfd57280 *R/answerTests.R
 c58693f49dbe085b9c0f80e1c9ded924 *R/answerTests2.R
-a6b3251d1b451bea5490c1577dfc5600 *R/courseraCheck.R
+c0c40c661bcb2f0117461064e338f5c1 *R/courseraCheck.R
 b9c251f2432083c371424dabd668c2c2 *R/install_course.R
 c7bf2c52fee3f43bca2afad9f474f92a *R/instructionSet.R
 5dbbdb99854f8dc4437b4c10a7ecc230 *R/lesson_constructor.R
-8c47c88d426f452da546462577ea7319 *R/menu.R
+d64497671fd69c065b90382d40c89ec6 *R/menu.R
 b0d5b6af4fca6723e0cc421a8910dbde *R/parse_content.R
 796b6d800402b8185053eff7b869e4c6 *R/phrases.R
 361b759391020fc17dac63f4ad90e6ef *R/progress.R
@@ -14,7 +14,7 @@ f7b76a2c09606ec6091eef4cd770154f *R/rmd2df.R
 a441c2da7c93b254070ac6c172b613bc *R/swirl.R
 ce5680abeb86df1dbbcfb8eb30c704db *R/utilities.R
 23b8c67c6aba33963d90188b0deb80a2 *R/zzz.R
-3e9878c7ae0110118214a7a7320a2a7d *README.md
+d89fe957265818f6798891c3eb9b37c2 *README.md
 c76eaadef84da832933917d630ebe91f *inst/Courses/suggested_courses.yaml
 cd0c3567e6512522271b9d2114f42180 *man/bye.Rd
 012c9bf672f94505a09b745380380826 *man/expr_creates_var.Rd
