@@ -60,7 +60,9 @@ mergeLists <- function(sourceList, destList){
 safeEval <- function(expr, e){
   e1 <- cleanEnv(e$snapshot)
   ans <- list()
-  temp <- try(suppressMessages(suppressWarnings(eval(expr,e1))), silent=FALSE)
+  temp <- capture.output(
+    try(suppressMessages(suppressWarnings(eval(expr,e1))), silent=TRUE)
+    )
   if(is(temp, "try-error"))return(ans)
   for (x in ls(e1)){
     if(exists(x,globalenv()))
@@ -121,6 +123,7 @@ loadDependencies <- function(lesson_dir) {
     if(length(packages_as_chars) == 0) return(TRUE)
     swirl_out("Attemping to load lesson dependencies...")
     for(p in packages_as_chars) {
+      p <- gsub("^\\s+|\\s+$", "", p) # trim leading and trailing whitespace 
       if(suppressPackageStartupMessages(
         suppressWarnings(
           suppressMessages(require(p, character.only=TRUE, quietly=TRUE))))) {
@@ -151,4 +154,31 @@ loadDependencies <- function(lesson_dir) {
   # If loop completes, then print a blank line and return TRUE
   cat("\n")
   return(TRUE)
+}
+
+# Execute correct answers for rows 1 through 'up_through' of lesson
+complete_part <- function(e) {
+  up_through <- e$test_from - 1
+  # Get rows though 'up_through' argument
+  les <- e$les[seq(up_through), ]
+  # Execute previous correct answers in global env
+  exec_cmd <- function(row) {
+    if(row['Class'] == "cmd_question") {
+      eval(parse(text = row['CorrectAnswer']), envir=globalenv())
+    } else if(row['Class'] == "script") {
+      orig_script_name <- row['Script']
+      correct_script_name <- paste0(
+        tools::file_path_sans_ext(orig_script_name), "-correct.R")
+      correct_script_path <- file.path(e$path, "scripts", 
+                                       correct_script_name)
+      if(file.exists(correct_script_path)) {
+        try(source(correct_script_path))
+      } else {
+        stop("Correct script not found at ", correct_script_path)
+      }
+    }
+  }
+  message("Completing the first part of the lesson for you...\n")
+  apply(les, 1, exec_cmd)
+  invisible()
 }

@@ -150,7 +150,15 @@ mainMenu.default <- function(e){
           e$les <- loadLesson(e, courseU, lesson)
         }
       }
-   # Remove temp lesson name and course name vars, which were surrogates
+      # For sourcing files which construct figures etc
+      e$path <- file.path(courseDir(e), courseU, lesson)
+      # If running in 'test' mode and starting partway through 
+      # lesson, then complete first part
+      if(is(e, "test") && e$test_from > 1) {
+        complete_part(e)
+      }
+      
+      # Remove temp lesson name and course name vars, which were surrogates
       # for csv attributes -- they've been attached via lesson() by now
       rm("temp_lesson_name", "temp_course_name", envir=e, inherits=FALSE)
       
@@ -159,8 +167,12 @@ mainMenu.default <- function(e){
       e$pbar_seq <- seq(0, 1, length=nrow(e$les))
       
       # expr, val, ok, and vis should have been set by the callback.
-      # The lesson's current row
-      e$row <- 1
+      # The lesson's current row - could start after 1 if in 'test' mode
+      if(is(e, 'test')) {
+        e$row <- e$test_from
+      } else {
+        e$row <- 1
+      }
       # The current row's instruction pointer
       e$iptr <- 1
       # A flag indicating we should return to the prompt
@@ -170,8 +182,6 @@ mainMenu.default <- function(e){
       loadInstructions(e)
       # An identifier for the active row
       e$current.row <- NULL
-      # For sourcing files which construct figures etc
-      e$path <- file.path(courseDir(e), courseU, lesson)
       # Set up paths and files to save user progress
       # Make file path from lesson info
       fname <- progressName(attr(e$les,"course_name"), attr(e$les,"lesson_name"))
@@ -192,8 +202,15 @@ welcome.test <- function(e, ...){
 
 # Default version.
 welcome.default <- function(e, ...){
-  swirl_out("Welcome to swirl! Please sign in. If you've been here before, use the same name as you did then. If you are new, call yourself something unique.", skip_after=TRUE)
-  return(readline("What shall I call you? "))
+  swirl_out("Welcome to swirl!")
+  swirl_out("Please sign in. If you've been here before, use the same name as you did then. If you are new, call yourself something unique.", skip_after=TRUE)
+  resp <- readline("What shall I call you? ")
+  while(str_detect(resp, '[[:punct:]]')) {
+    swirl_out("Please don't use any quotes or other punctuation in your name.",
+              skip_after = TRUE)
+    resp <- readline("What shall I call you? ")
+  }
+  return(resp)
 }
 
 # Presents preliminary information to a new user
@@ -201,12 +218,12 @@ welcome.default <- function(e, ...){
 # @param e persistent environment used here only for its class attribute
 # 
 housekeeping.default <- function(e){
-  swirl_out(paste0("Thanks, ", e$usr,". Let's cover a couple of quick housekeeping items before we begin our first lesson. First off, you should know that when you see '...', that means you should press Enter when you are done reading and ready to continue."))
+  swirl_out(paste0("Thanks, ", e$usr,". Let's cover a few quick housekeeping items before we begin our first lesson. First of all, you should know that when you see '...', that means you should press Enter when you are done reading and ready to continue."))
   readline("\n...  <-- That's your cue to press Enter to continue")
   swirl_out("Also, when you see 'ANSWER:', the R prompt (>), or when you are asked to select from a list, that means it's your turn to enter a response, then press Enter to continue.")
   select.list(c("Continue.", "Proceed.", "Let's get going!"),
               title="\nSelect 1, 2, or 3 and press Enter", graphics=FALSE)
-  swirl_out("You can exit swirl and return to the R prompt (>) at any time by pressing the Esc key. If you are already at the prompt, type bye() to exit and save your progress. When you exit properly, you'll see a short message letting know you've done so.")
+  swirl_out("You can exit swirl and return to the R prompt (>) at any time by pressing the Esc key. If you are already at the prompt, type bye() to exit and save your progress. When you exit properly, you'll see a short message letting you know you've done so.")
   info()
   swirl_out("Let's get started!", skip_before=FALSE)
   readline("\n...")
@@ -267,7 +284,10 @@ loadLesson.default <- function(e, courseU, lesson){
     # since a reference to e$snapshot will cause e to appear in
     # local environment.
     xfer(environment(), globalenv())
-    e$snapshot <- as.list(environment())
+    # Only add to the "official record" if are auto-detecting new variables
+    if(isTRUE(customTests$AUTO_DETECT_NEWVAR)) {
+      e$snapshot <- as.list(environment())
+    }
   })
   # load any custom tests, returning FALSE if they fail to load
   clearCustomTests()
