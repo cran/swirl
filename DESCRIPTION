@@ -1,26 +1,34 @@
 Package: swirl
-Title: Learn R, in R.
-Description: swirl turns the R console into an interactive learning
+Title: Learn R, in R
+Description: Use the R console as an interactive learning
     environment. Users receive immediate feedback as they are guided through
     self-paced lessons in data science and R programming.
 URL: http://swirlstats.com
-Version: 2.2.21
-License: GPL-3
+Version: 2.4.0
+License: MIT + file LICENSE
 Authors@R: c(
-    person("Nick", "Carchedi", email = "nick.carchedi@gmail.com",
-    role = c("aut", "cre")),
+    person("Sean", "Kross", email = "sean@seankross.com", role = c("aut", "cre")),
+    person("Nick", "Carchedi", role = "aut"),
     person("Bill", "Bauer", role = "aut"),
     person("Gina", "Grdina", role = "aut"),
-    person("Sean", "Kross", role = "aut")
+    person("Filip", "Schouwenaars", role = "ctb"),
+    person("Wush", "Wu", role = "ctb")
     )
 Depends: R (>= 3.0.2)
-Imports: stringr, testthat, httr, yaml, RCurl, digest, tools
-Packaged: 2015-01-04 00:54:07 UTC; nicholasacarchedi
-Author: Nick Carchedi [aut, cre],
+Imports: stringr, testthat, httr (>= 1.1.0), yaml, RCurl, digest,
+        tools, utils, methods
+Suggests: stringi
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 5.0.1
+NeedsCompilation: no
+Packaged: 2016-03-21 20:31:51 UTC; sean
+Author: Sean Kross [aut, cre],
+  Nick Carchedi [aut],
   Bill Bauer [aut],
   Gina Grdina [aut],
-  Sean Kross [aut]
-Maintainer: Nick Carchedi <nick.carchedi@gmail.com>
-NeedsCompilation: no
+  Filip Schouwenaars [ctb],
+  Wush Wu [ctb]
+Maintainer: Sean Kross <sean@seankross.com>
 Repository: CRAN
-Date/Publication: 2015-01-04 07:08:19
+Date/Publication: 2016-03-25 00:25:15
