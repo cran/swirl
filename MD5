@@ -1,7 +1,7 @@
-92086cfc859887bad60516ffcb14ef2f *DESCRIPTION
-b94c53859ca6a447c4d94675c71bd6bf *LICENSE
+3bee632f04862a8e9c6ca5651f1431c5 *DESCRIPTION
+dd2b7032ca2ed8f89d4b9d66baea7380 *LICENSE
 2f31bd584c2705c29f0314d651309008 *NAMESPACE
-a4c2a3581db0dfe5c3b916ae83da8d85 *NEWS.md
+040f657570bc530e3d2d38c2da1320fa *NEWS.md
 75c131959b8e5dca64179fe9daa13ecc *R/actions.R
 dbbd4dcc916b48b1de3786d316457ab4 *R/answerTests.R
 abbb44d2042e4d706f3d70f554948cb5 *R/answerTests2.R
@@ -11,11 +11,11 @@ d62df12135e3df6d93d21b9ffb804d7a *R/email_info.R
 91a3cfceb889468b26ca5c965f102073 *R/global.R
 72485dd63050d99f1e563490c42142ad *R/install_course.R
 63f3e2c3e45cf40b2bfbbd6775c5f702 *R/instructionSet.R
-93d1ed3a6472e75db2daa28dcf76362e *R/languages.R
+a610909a5ef003ca53ed1009901d4ee2 *R/languages.R
 46aca8bebac169454895a4a3738b29b8 *R/lesson_constructor.R
 15aaf574ffa12dd0504cd1c00184ea45 *R/log.R
 242aab2e71965786b9a834a706ee2943 *R/menu.R
-5f86788b1f5384dd883c0bf64d135760 *R/options.R
+a6e6e6c2eb420718b24cdeeb6b40f31d *R/options.R
 ec7231932034ce31a7d429dc29074721 *R/parse_content.R
 fae009c1da5280323f30c56d525a5c7a *R/phrases.R
 05c62a8042e2d9765ad62503a5e19e67 *R/post.R
@@ -23,7 +23,7 @@ b889ba350ac846a71cea77d3e0754b6d *R/progress.R
 0693d2c4b67016d79c909a2e03247b40 *R/rmatch_calls.R
 f7b76a2c09606ec6091eef4cd770154f *R/rmd2df.R
 7b5e8095db498068d5efc7536149ebb1 *R/swirl.R
-dfdfdcd5a5476b98b6754a29c778ab01 *R/sysdata.rda
+60043b83130f99eeb90d455eda8f07fe *R/sysdata.rda
 bac8343e3c654e7b944e53eae06e0cb7 *R/testthat_legacy.R
 aa447979740c748a5592425f5483cdc4 *R/utilities.R
 6aa23f2d39b44bc044ace2e68ecfb66c *R/zzz.R
